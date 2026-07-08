@@ -23,6 +23,9 @@
   font-weight: 700;
   margin-bottom: 10px;
   color: var(--SmartThemeBodyColor, #eee);
+  cursor: move;
+  touch-action: none;      /* 触摸拖动时不触发页面滚动 */
+  user-select: none;
 }
 .gomoku-panel-close { cursor: pointer; opacity: 0.6; }
 .gomoku-panel-close:hover { opacity: 1; }
