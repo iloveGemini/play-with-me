@@ -1,0 +1,8 @@
+<!-- 粘贴到 SillyTavern 的「界面」（酒馆助手前端界面）里。
+     把下面的 USER/REPO 换成你自己的 GitHub 用户名/仓库名；@main 可换成某个 tag。
+     jsdelivr 会顺着 main.js 的相对 import 自动拉取 src 下的其余模块。 -->
+<div id="gomoku-root"></div>
+<script type="module">
+  import { start } from 'https://testingcf.jsdelivr.net/gh/USER/REPO@main/src/gomoku/main.js';
+  start(document.getElementById('gomoku-root'));
+</script>
