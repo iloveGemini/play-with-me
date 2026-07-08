@@ -1,0 +1,67 @@
+/* ── 浮动面板 ── */
+#gomoku-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, 94vw);
+  max-height: 92vh;
+  overflow: auto;
+  z-index: 10000;
+  background: var(--SmartThemeBlurTintColor, #1e1f26);
+  border: 1px solid var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.15));
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  padding: 12px 14px 16px;
+  display: none;
+}
+#gomoku-panel.open { display: block; }
+.gomoku-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--SmartThemeBodyColor, #eee);
+}
+.gomoku-panel-close { cursor: pointer; opacity: 0.6; }
+.gomoku-panel-close:hover { opacity: 1; }
+
+/* ── 棋盘与控件 ── */
+.gmk { font-family: system-ui, sans-serif; color: var(--SmartThemeBodyColor, #2b2b2b); }
+.gmk-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.gmk-title { font-weight: 700; font-size: 16px; }
+.gmk-stats { font-size: 13px; opacity: 0.8; }
+.gmk-board {
+  background: #e3b96b;
+  border: 2px solid #7a5320;
+  border-radius: 6px;
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 0;
+  aspect-ratio: 1 / 1;
+}
+.gmk-cell { position: relative; border: 0.5px solid #b98a3e; cursor: pointer; }
+.gmk-cell:hover::after {
+  content: '';
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.08);
+}
+.gmk-stone { position: absolute; inset: 10%; border-radius: 50%; }
+.gmk-black { background: radial-gradient(circle at 35% 30%, #6b6b6b, #050505); }
+.gmk-white { background: radial-gradient(circle at 35% 30%, #ffffff, #c4c4c4); border: 0.5px solid #999; }
+.gmk-last { box-shadow: 0 0 0 2px #d63b3b, 0 0 4px 1px rgba(214, 59, 59, 0.6); }
+.gmk-status { text-align: center; margin: 10px 0; min-height: 22px; font-size: 14px; }
+.gmk-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.gmk-controls button {
+  padding: 6px 14px;
+  border: 1px solid #7a5320;
+  background: #f6e7c8;
+  color: #2b2b2b;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.gmk-controls button:disabled { opacity: 0.4; cursor: not-allowed; }

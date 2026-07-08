@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>五子棋扩展 · 本地预览</title>
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    body { background: #23242b; margin: 0; padding: 20px 12px; color: #ddd; }
+    .wrap { max-width: 560px; margin: 0 auto; }
+    #gomoku-mount { margin-bottom: 14px; }
+    .sim { background: #2c2e37; border: 1px solid #444; border-radius: 8px; padding: 10px; margin-top: 12px; }
+    .sim h4 { margin: 0 0 6px; font-size: 12px; opacity: 0.7; font-weight: 600; }
+    .sim-row { display: flex; gap: 8px; }
+    #fake-input { flex: 1; padding: 6px 8px; border-radius: 6px; border: 1px solid #555; background: #1c1d23; color: #eee; }
+    .sim button { padding: 6px 12px; border-radius: 6px; border: 1px solid #666; background: #3a3d48; color: #eee; cursor: pointer; }
+    pre { white-space: pre-wrap; font-size: 11px; background: #1c1d23; padding: 8px; border-radius: 6px; max-height: 220px; overflow: auto; margin: 8px 0 0; }
+    #ai-reply-view { font-size: 12px; color: #9ad; margin-top: 6px; min-height: 16px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- 游戏挂载点（模拟扩展面板 body） -->
+    <div id="gomoku-mount"></div>
+
+    <!-- 模拟酒馆输入框 + 发送 -->
+    <div class="sim">
+      <h4>模拟酒馆输入框（点棋盘会自动填入，你可改；点发送触发“AI 生成”）</h4>
+      <div class="sim-row">
+        <input id="fake-input" placeholder="点棋盘落子后这里会出现『我落子 (x,y)』" />
+        <button id="fake-send">发送</button>
+        <button id="fake-reset" title="清空存档">重置</button>
+      </div>
+      <div id="ai-reply-view"></div>
+      <h4 style="margin-top:10px;">本回合注入给 AI 的内容（一起听同款机制）</h4>
+      <pre id="inject-view">（点发送后显示）</pre>
+    </div>
+  </div>
+  <script type="module" src="./extension-preview.js"></script>
+</body>
+</html>

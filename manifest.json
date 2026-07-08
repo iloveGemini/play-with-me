@@ -1,0 +1,14 @@
+{
+  "display_name": "五子棋 · 对战AI",
+  "loading_order": 20,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "css": "style.css",
+  "author": "iloveGemini",
+  "version": "0.1.0",
+  "homePage": "https://github.com/iloveGemini/play-with-me",
+  "hooks": {
+    "activate": "init"
+  }
+}
