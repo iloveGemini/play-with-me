@@ -30,6 +30,50 @@
 .gomoku-panel-close { cursor: pointer; opacity: 0.6; }
 .gomoku-panel-close:hover { opacity: 1; }
 
+/* -- Game host -- */
+.gh { font-family: system-ui, sans-serif; color: var(--SmartThemeBodyColor, #eee); }
+.gh-bar {
+  display: grid;
+  grid-template-columns: minmax(74px, auto) 1fr minmax(74px, auto);
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.gh-title { text-align: center; font-weight: 700; font-size: 15px; }
+.gh-home,
+.gh-tile {
+  border: 1px solid var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.18));
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.gh-home { padding: 5px 8px; font-size: 12px; }
+.gh-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+.gh-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 10px;
+}
+.gh-tile {
+  min-height: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.gh-tile:hover { background: rgba(255, 255, 255, 0.14); }
+.gh-tile-icon { font-size: 24px; line-height: 1; }
+.gh-tile-name { font-size: 14px; font-weight: 650; }
+
 /* ── 棋盘与控件 ── */
 .gmk { font-family: system-ui, sans-serif; color: var(--SmartThemeBodyColor, #2b2b2b); }
 .gmk-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }

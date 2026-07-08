@@ -1,13 +1,8 @@
-// 五子棋游戏逻辑 + 视图（不直接依赖 SillyTavern）。
-// 通过注入的 ctx 与酒馆交互，便于用假 ctx 在浏览器里预览。
+// 五子棋游戏 descriptor。不直接依赖酒馆，也不直接碰注入/消息钩子——
+// 把 getInjection/onMessage 交给框架统一调度。
 //
-// ctx = {
-//   container: HTMLElement,                 // 挂载棋盘的容器
-//   io: { read(key), write(key,value) },    // 存储（localStorage 背后）
-//   fillInput(text): void,                  // 把文本填进酒馆输入框（不自动发送）
-//   registerInjection(provider): void,      // provider() 返回本次生成要注入的提示词或 null
-//   onMessageReceived(cb): void,            // AI 消息到达时 cb(text)
-// }
+// mount(container, services) -> { getInjection(), onMessage(text), destroy() }
+//   services = { io, fillInput }
 
 import { SIZE, isLegalMove, BLACK } from '../core/board.js';
 import {
@@ -18,13 +13,12 @@ import { parseMove } from '../core/parseMove.js';
 import { buildAiPrompt, buildUserInput, buildCorrection } from '../core/messages.js';
 import { saveGame, loadGame, clearGame, recordResult, loadStats } from '../core/storage.js';
 
-export function mountGame(ctx) {
+function mount(container, { io, fillInput }) {
   let session = newSession();
   let stats = { gomoku: { win: 0, loss: 0, draw: 0 } };
   let choosing = false;
   let notice = '';
 
-  // ── DOM 骨架 ──
   const root = document.createElement('div');
   root.className = 'gmk';
   root.innerHTML = `
@@ -35,7 +29,7 @@ export function mountGame(ctx) {
     <div class="gmk-board"></div>
     <div class="gmk-status"></div>
     <div class="gmk-controls"></div>`;
-  ctx.container.replaceChildren(root);
+  container.replaceChildren(root);
 
   const boardEl = root.querySelector('.gmk-board');
   const statsEl = root.querySelector('.gmk-stats');
@@ -53,7 +47,6 @@ export function mountGame(ctx) {
     }
   }
 
-  // ── 渲染 ──
   function render() {
     const game = session.game;
     const last = game && game.lastMove ? game.lastMove.pos : null;
@@ -110,14 +103,12 @@ export function mountGame(ctx) {
     controlsEl.replaceChildren(...c);
   }
 
-  // ── 流程 ──
   async function startNew(firstPlayer) {
     choosing = false; notice = '';
     session = startGame(session, { firstPlayer });
-    await saveGame(ctx.io, session.game);
+    await saveGame(io, session.game);
     render();
-    // AI 先手：把开场提示填进输入框，让玩家发送触发 AI
-    if (shouldCallAi(session)) ctx.fillInput('（新对局，你先手，请落子）');
+    if (shouldCallAi(session)) fillInput('（新对局，你先手，请落子）');
   }
 
   async function onCellClick(r, c) {
@@ -126,16 +117,14 @@ export function mountGame(ctx) {
     if (!isLegalMove(session.game.board, r, c)) return;
     session = applyUserMove(session, r, c);
     notice = '';
-    await saveGame(ctx.io, session.game);
+    await saveGame(io, session.game);
     render();
     if (session.state === 'finished') return finish();
-    // 轮到 AI：把落子播报填进输入框，玩家可补一句再发送
-    ctx.fillInput(buildUserInput(session.game.lastMove));
+    fillInput(buildUserInput(session.game.lastMove));
   }
 
-  // AI 消息到达 → 解析落子
   async function handleAiMessage(text) {
-    if (!shouldCallAi(session)) return; // 不是在等 AI 落子
+    if (!shouldCallAi(session)) return;
     const parsed = parseMove(text);
     if (!parsed.ok || !isLegalMove(session.game.board, parsed.row, parsed.col)) {
       const reason = parsed.ok ? 'illegal' : parsed.reason;
@@ -145,42 +134,48 @@ export function mountGame(ctx) {
     }
     session = applyAiMove(session, parsed.row, parsed.col);
     notice = '';
-    await saveGame(ctx.io, session.game);
+    await saveGame(io, session.game);
     render();
     if (session.state === 'finished') return finish();
   }
 
   async function finish() {
     if (session.game.status !== 'playing') {
-      await recordResult(ctx.io, session.game.status);
-      stats = await loadStats(ctx.io);
-      await clearGame(ctx.io);
+      await recordResult(io, session.game.status);
+      stats = await loadStats(io);
+      await clearGame(io);
     }
     render();
   }
 
-  async function doPause() { session = pause(session); await saveGame(ctx.io, session.game); render(); }
+  async function doPause() { session = pause(session); await saveGame(io, session.game); render(); }
   async function doResume() {
     session = resume(session); render();
-    if (shouldCallAi(session)) ctx.fillInput('（继续对局，轮到你走）');
+    if (shouldCallAi(session)) fillInput('（继续对局，轮到你走）');
   }
-  async function doSurrender() { session = surrender(session); await saveGame(ctx.io, session.game); await finish(); }
+  async function doSurrender() { session = surrender(session); await saveGame(io, session.game); await finish(); }
 
-  // ── 注入：生成前把当前棋盘发给 AI（仅轮到 AI 时）──
-  ctx.registerInjection(() => {
-    if (!shouldCallAi(session)) return null;
-    return buildAiPrompt(session.game);
-  });
-
-  ctx.onMessageReceived(text => { handleAiMessage(text); });
-
-  // ── 初始化：读战绩 + 续玩 ──
+  // 初始化：读战绩 + 续玩
   (async () => {
-    stats = await loadStats(ctx.io);
-    const saved = await loadGame(ctx.io);
+    stats = await loadStats(io);
+    const saved = await loadGame(io);
     if (saved) session = restoreSession(saved);
     render();
   })();
 
-  return { getSession: () => session };
+  return {
+    getInjection: () => (shouldCallAi(session) ? buildAiPrompt(session.game) : null),
+    onMessage: text => { handleAiMessage(text); },
+    getSession: () => session,
+    destroy: () => container.replaceChildren(),
+  };
 }
+
+export const gomokuGame = {
+  id: 'gomoku',
+  name: '五子棋',
+  icon: '⚫',
+  defaultDepth: 1,
+  defaultRole: 'system',
+  mount,
+};
