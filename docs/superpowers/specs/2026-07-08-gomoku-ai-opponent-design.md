@@ -39,6 +39,14 @@
 
 每轮发给 AI 的是**当前棋盘的 ASCII 快照 + 最新一手标注**，不发历史流水（棋盘已编码完整局面）。
 
+**送达方式（交互 A 的关键，避免棋盘刷屏）**：
+用 `generate({ user_input, injects })`——
+- `user_input`：玩家可见的短消息，如 `我落子 (8,5)`（落成正常楼层）。
+- `injects`：把整张 ASCII 棋盘作为 `role:'system'` 提示注入（`position:'in_chat'`, `depth:0`, `once` 语义仅本次生成有效）。**AI 看得到棋盘，但棋盘不落成楼层**，聊天记录保持干净。
+- AI 回复（台词 + `<move>`）正常显示。
+- `generate` 直接 `await` 返回生成文本，用于解析 `<move>`；`getChatMessages(-1)` 作兜底。
+- 备选保险：`generate` 的 `json_schema` 可强制结构化输出（取决于 API 源支持），先用 `<move>` 正则，json_schema 备选。
+
 ```
 棋盘  ·=空  ●=黑  ○=白   ◎=白方最新一手  ◉=黑方最新一手
 （图例中"黑/白"按本局角色分配动态标注谁是 AI、谁是玩家）
@@ -113,7 +121,7 @@
 1. 玩家点击 `(8,5)` → 前端校验合法（空位、在盘内）。
 2. 落子写入 `board`，**立即判胜负**：赢 → 更新 `status` + 写总世界书战绩 + 提示 + `finished`。
 3. 未赢 → 存档写入五子棋世界书。
-4. 前端构造消息 = ASCII 棋盘图 + "玩家刚落子(8,5)，轮到你" → 程序化发出 → 触发 AI 生成。
+4. 前端调用 `generate`：`user_input="我落子 (8,5)"`（可见楼层）+ `injects=[{role:'system', content: ASCII棋盘图, once}]`（AI 可见、不落楼层）。
 5. AI 回复：台词 + `<move>行,列</move>`。
 6. 前端解析 `<move>`：抠坐标 → 校验合法 → 合法则落子、判胜负、存档、渲染 → 回到等待玩家点击。
 7. 循环。
@@ -143,7 +151,16 @@
 - 纯函数模块 → 单元测试：胜负判定、非法落子、解析各种畸形 AI 输出、状态转移守卫。
 - 酒馆适配器 + 整体流程 → 在 SillyTavern 内手动集成测试。
 
-## 10. 待实现阶段验证的假设
+## 10. 接口验证结论（已对照 `docs/tavern-helper/@types.txt` 确认）
 
-- TavernHelper 需提供：①程序化发一条用户消息并触发 AI 生成；②读取 AI 回复文本以解析；③世界书条目的读写。
-  写实现计划前先确认这些接口存在；若某项不支持，交互方式需相应微调。
+全部满足，真实接口名如下：
+
+| 能力 | 接口 |
+|---|---|
+| 世界书读写 | `getWorldbook(name)` / `replaceWorldbook` / `updateWorldbookWith` / `getOrCreateChatWorldbook` / `createWorldbookEntries` / `getWorldbookNames` |
+| 触发 AI 生成 | `generate(config)`（支持 `user_input` / `injects` / `should_silence` / `json_schema`），`await` 返回文本 |
+| 读取 AI 回复 | `generate` 返回值；兜底 `getChatMessages(-1)` |
+| 楼层可见消息 | `generate` 非静默；或 `createChatMessages` / `setChatMessages` |
+| 生命周期事件 | `eventOn(tavern_events.MESSAGE_RECEIVED / GENERATION_ENDED, ...)`、`iframe_events.GENERATION_ENDED` |
+
+注：`generate` 的 `injects`（`role`/`content`/`position`/`depth`，`once` 仅本次生效）用于把 ASCII 棋盘注入给 AI 而不落楼层——见第 3 节。
