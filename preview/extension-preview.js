@@ -26,7 +26,9 @@ await host.init();
 // 模拟“发送”：触发注入 + 假 AI 回复
 document.getElementById('fake-send').addEventListener('click', async () => {
   const inject = host.getInjection();
-  document.getElementById('inject-view').textContent = inject?.content || '（本回合无注入）';
+  document.getElementById('inject-view').textContent = inject
+    ? `depth=${inject.depth}, role=${inject.role}\n\n${inject.content}`
+    : '（本回合无注入）';
   fakeInput.value = '';
   if (!inject) return; // 没轮到 AI，不回复
 
@@ -47,7 +49,7 @@ document.getElementById('fake-send').addEventListener('click', async () => {
 
 document.getElementById('fake-reset').addEventListener('click', () => {
   for (const key of [...Object.keys(localStorage)]) {
-    if (key.startsWith('game:gomoku:') || key.startsWith('host:')) localStorage.removeItem(key);
+    if (key.startsWith('game:') || key.startsWith('host:')) localStorage.removeItem(key);
   }
   location.reload();
 });
