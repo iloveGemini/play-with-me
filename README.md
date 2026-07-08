@@ -36,10 +36,17 @@ node scripts/serve.mjs # 本地静态服务器 :8123
 
 ## 部署到 SillyTavern
 
-1. 把本仓库推到 GitHub。
-2. 编辑 [dist/sillytavern-界面.html](dist/sillytavern-界面.html)，把 `USER/REPO` 换成你的用户名/仓库名。
-3. 把该 HTML 粘贴进酒馆助手的「界面」。jsdelivr 会顺着 `main.js` 的相对 import 自动拉取 `src` 下其余模块。
-4. 首次运行会自动创建世界书「五子棋」（存当前对局）与「游戏总战绩」（存胜负），条目均为**禁用**状态——纯数据，不会注入 AI 上下文。名称可在 [src/adapters/config.js](src/adapters/config.js) 改。
+酒馆里交互式前端走「**正则 + 占位符**」：一条正则把消息里的占位符替换成整段**内联** HTML/JS 在 iframe 渲染。替换内容不能有外链 `import`，所以先打包成零外链单文件。详见 [dist/部署-正则方式.md](dist/部署-正则方式.md)。
+
+```bash
+npm run build          # 生成 dist/五子棋-regex.json（可直接导入酒馆「正则」）
+```
+
+1. 酒馆「正则」扩展 → 导入 `dist/五子棋-regex.json`。
+2. 在任意消息里写占位符 `<GomokuBoard/>` → 渲染成棋盘。
+3. 首次运行自动创建世界书「五子棋」（存当前对局）与「游戏总战绩」（存胜负），条目均为**禁用**状态——纯数据，不注入 AI 上下文。名称可在 [src/adapters/config.js](src/adapters/config.js) 改。
+
+> 不用 CDN/GitHub：整段代码内联进正则，改了 `src` 重新 `npm run build` 再导入覆盖即可。
 
 ## 存档与战绩
 

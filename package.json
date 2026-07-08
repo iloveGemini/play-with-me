@@ -4,6 +4,7 @@
   "description": "跟 AI 玩的小游戏合集（酒馆助手前端）——第一版：五子棋",
   "type": "module",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "build": "node scripts/build.mjs"
   }
 }
