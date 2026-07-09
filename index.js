@@ -5,6 +5,7 @@ import { SlashCommandParser } from '../../../slash-commands/SlashCommandParser.j
 import { SlashCommand } from '../../../slash-commands/SlashCommand.js';
 import { createGameHost } from './src/framework.js';
 import { gomokuGame } from './src/gomoku/extension.js';
+import { haiguitangGame } from './src/haiguitang/extension.js';
 
 let host = null;
 
@@ -155,6 +156,7 @@ export function init() {
 
   host = createGameHost({ container: panel.querySelector('#game-host'), io, hostServices: { fillInput } });
   host.registerGame(gomokuGame);
+  host.registerGame(haiguitangGame);
   host.init();
 
   try {
